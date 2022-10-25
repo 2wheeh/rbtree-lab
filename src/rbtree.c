@@ -2,10 +2,22 @@
 
 #include <stdlib.h>
 
+
 rbtree *new_rbtree(void) {
-  rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
+  /*
+  1. tree t 메모리 할당
+  2. nil node 메모리 할당
+  3. nil.color = black
+  4. t.nil = nil node
+  5. t.root = nil node 
+  */
+  rbtree *t = (rbtree *)calloc(1, sizeof(rbtree));
   // TODO: initialize struct if needed
-  return p;
+  node_t *nil_node = (node_t *)calloc(1, sizeof(node_t)); // nil node 생성
+  nil_node->color = RBTREE_BLACK;
+  t -> nil = nil_node;  // t.nil = nil
+  t -> root = nil_node; // t.root = nil 로 초기화
+  return t; // tree t 반환
 }
 
 void delete_rbtree(rbtree *t) {
