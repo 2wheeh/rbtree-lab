@@ -127,12 +127,18 @@ node_t *insert(rbtree *t, node_t *z)
   return z;
 }
 
-// void delete_node(node_t *node) {
-//   free(node);
-// }
+void delete_node(node_t *node, node_t *nil_node) {
+  if(node != nil_node){ // nil 은 하나니까 계속 지울수도 없고 할필요도 없어
+    delete_node(node->left, nil_node);    
+    delete_node(node->right, nil_node);    
+    free(node);
+    node = NULL;
+  }
+}
 
 void delete_rbtree(rbtree *t) {
   // TODO: reclaim the tree nodes's memory
+  delete_node(t->root, t->nil);
   free(t->nil); // free node_t *nil_node 
   free(t);  // free rbtree *t
   t = NULL; // t 는 정적 할당 된 포인터변수 이기 때문에 직접 없애줌
