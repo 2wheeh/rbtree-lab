@@ -167,13 +167,22 @@ void delete_node(node_t *node, node_t *nil_node) {
   }
 }
 
-// void dfs_delete(node_t *node, node_t *nil_node){
-
-// }
-
+void dfs_delete(node_t *node, node_t *nil_node){
+  stack s;
+  // node_t *u = node;
+  stk_init(&s);
+  if(node != nil_node) stk_push(&s, node);
+  while(stk_is_empty(&s) == 0){
+    node = stk_pop(&s);
+    if(node->right != nil_node) stk_push(&s, node->right);
+    if(node->left != nil_node) stk_push(&s, node->left);
+    free(node);
+  }
+}
 
 void delete_rbtree(rbtree *t) {
-  delete_node(t->root, t->nil);
+  // delete_node(t->root, t->nil);
+  dfs_delete(t->root, t->nil);
   free(t->nil);                               // free node_t *nil_node 
   free(t); t = NULL;                          // free rbtree *t, t 는 정적 할당 된 포인터변수 이기 때문에 직접 없애줌
 }
