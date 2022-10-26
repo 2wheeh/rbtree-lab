@@ -1,5 +1,5 @@
 #include "rbtree.h"
-
+#include <stdio.h>
 #include <stdlib.h>
 
 rbtree *new_rbtree(void) {
@@ -21,8 +21,8 @@ rbtree *new_rbtree(void) {
 void left_rotate(rbtree *t, node_t *x)
 {
   node_t *y = x->right; // y를 설정한다
-  y->right = y->left; // y의 왼쪽 서브 트리를 x의 오른쪽 서브 트리로 옮긴다
-  if(y->left == t->nil){
+  x->right = y->left; // y의 왼쪽 서브 트리를 x의 오른쪽 서브 트리로 옮긴다
+  if(y->left != t->nil){
       y->left->parent = x;
   }
   y->parent = x->parent;  // x의 부모를 y로 연결한다
@@ -37,8 +37,8 @@ void left_rotate(rbtree *t, node_t *x)
 void right_rotate(rbtree *t, node_t *x)
 {
   node_t *y = x->left; // y를 설정한다
-  y->left = y->right; // y의 왼쪽 서브 트리를 x의 오른쪽 서브 트리로 옮긴다
-  if(y->right == t->nil){
+  x->left = y->right; // y의 왼쪽 서브 트리를 x의 오른쪽 서브 트리로 옮긴다
+  if(y->right != t->nil){
       y->right->parent = x;
   }
   y->parent = x->parent;  // x의 부모를 y로 연결한다
@@ -98,7 +98,6 @@ void insert_fixup(rbtree *t, node_t *z)
 
 node_t *insert(rbtree *t, node_t *z)
 { 
-  key_t key = z->key;
   node_t *y = t->nil; // x가 nil되면 걔 부모를 알고있어야 z가 들어갈 위치를 아는 것임
   node_t *x = t->root;  // 처음 비교를 root 부터 비교해가며 내려갈 것임
   
@@ -118,6 +117,7 @@ node_t *insert(rbtree *t, node_t *z)
     y->left = z;
 
   else y->right = z;
+
   z->left = t->nil;   // sentinel 노드 새로 추가된 노드의 자식에 달아주기
   z->right = t->nil;
   z->color = RBTREE_RED;  // 새로 추가된 z 는 RED 
@@ -197,7 +197,7 @@ node_t *rbtree_max(const rbtree *t) {
 void transplant(rbtree *t, node_t *u, node_t *v){ // v가 u의 자리로
   if(u->parent == t->nil) t->root = v;
   else if(u == u->parent->left) u->parent->left = v;
-  else u->parent->right;
+  else u->parent->right = v;
 
   v->parent = u->parent;
 }
@@ -249,7 +249,7 @@ void erase_fixup(rbtree *t, node_t *x)
         w = x->parent->left;
       }
 
-      if(w->right->color == RBTREE_BLACK && w->left->color == RBTREE_BLACK){ // Case 2: w이 둘다 blk -> w만 빨강으로 바꿔서 해결 시도
+      if(w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK){ // Case 2: w이 둘다 blk -> w만 빨강으로 바꿔서 해결 시도
         w->color = RBTREE_RED;
         x = x->parent;  // 다음 while에서 검사할 x cursor 이동
       }
@@ -288,12 +288,22 @@ int rbtree_erase(rbtree *t, node_t *z) {
     transplant(t, z, z->left);
   }
   else  // 자식이 2명
-  {
-    y = rbtree_min(z->right);
+  { 
+    // z->right을 root로 하는 subtree 만들어서 매개변수로 줘야 함
+  
+    rbtree *sub = new_rbtree();
+    free(sub->nil);
+    sub->nil = t->nil;
+    sub->root = z->right;
+    y = rbtree_min(sub);
+    
+    free(sub);
+
     y_original_color = y->color;
     x = y->right;
     if(y->parent == z) x->parent = y; // x가 t.nil일 경우 부모 정보 아무렇게 들어있을 것. 업데이트 필요
     else{
+
       transplant(t, y, y->right);
       y->right = z->right;
       y->right->parent = y;
@@ -303,14 +313,34 @@ int rbtree_erase(rbtree *t, node_t *z) {
     y->left = z->left;
     y->left->parent = y;
     y->color = z->color;
+    
   }
-
+  free(z);
+  
   if(y_original_color == RBTREE_BLACK) erase_fixup(t, x);
 
   return 0;
 }
 
+
+void inorder(node_t *z, size_t *idx, key_t *arr, node_t *nil_node){
+  if(z == nil_node) return;
+
+  inorder(z->left, idx, arr, nil_node);
+  *(arr + (*idx)++) = z->key;
+  inorder(z->right, idx, arr, nil_node);
+}
+
+
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
   // TODO: implement to_array
+  size_t *idx = (size_t *)calloc(1, sizeof(size_t));
+  node_t *nil_node = t->nil;
+
+  *idx = 0;
+  printf("\n");
+  inorder(t->root, idx, arr, nil_node);
+  printf("\n");
+  free(idx);
   return 0;
 }
