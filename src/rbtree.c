@@ -18,7 +18,7 @@ rbtree *new_rbtree(void) {
   return t; // tree t 반환
 }
 
-void *left_rotate(rbtree *t, node_t *x)
+void left_rotate(rbtree *t, node_t *x)
 {
   node_t *y = x->right; // y를 설정한다
   y->right = y->left; // y의 왼쪽 서브 트리를 x의 오른쪽 서브 트리로 옮긴다
@@ -34,7 +34,7 @@ void *left_rotate(rbtree *t, node_t *x)
   x->parent = y;
 }
 
-void *right_rotate(rbtree *t, node_t *x)
+void right_rotate(rbtree *t, node_t *x)
 {
   node_t *y = x->left; // y를 설정한다
   y->left = y->right; // y의 왼쪽 서브 트리를 x의 오른쪽 서브 트리로 옮긴다
@@ -50,7 +50,7 @@ void *right_rotate(rbtree *t, node_t *x)
   x->parent = y;
 }
 
-void *insert_fixup(rbtree *t, node_t *z)
+void insert_fixup(rbtree *t, node_t *z)
 {
   node_t *y;
   while(z->parent->color == RBTREE_RED){ // 특성4. 위반 check
@@ -131,7 +131,7 @@ void delete_node(node_t *node, node_t *nil_node) {
   if(node != nil_node){ // nil 은 하나니까 계속 지울수도 없고 할필요도 없어
     delete_node(node->left, nil_node);    
     delete_node(node->right, nil_node);    
-    free(node);
+    free(node); // 혹시 새로 추가된 애들이 섞여있기때문에 걍 노드단위로 해제해줌
     node = NULL;
   }
 }
@@ -168,16 +168,145 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
 
 node_t *rbtree_min(const rbtree *t) {
   // TODO: implement find
-  return t->root;
+  node_t *z = t->root;
+  node_t *min_node = z;
+
+  while(z != t->nil)
+  {
+    min_node = z;
+    z = z->left;
+  }
+
+  return min_node;
 }
 
 node_t *rbtree_max(const rbtree *t) {
   // TODO: implement find
-  return t->root;
+  node_t *z = t->root;
+  node_t *max_node = z;
+
+  while(z != t->nil)
+  {
+    max_node = z;
+    z = z->right;
+  }
+
+  return max_node;
 }
 
-int rbtree_erase(rbtree *t, node_t *p) {
+void transplant(rbtree *t, node_t *u, node_t *v){ // v가 u의 자리로
+  if(u->parent == t->nil) t->root = v;
+  else if(u == u->parent->left) u->parent->left = v;
+  else u->parent->right;
+
+  v->parent = u->parent;
+}
+
+void erase_fixup(rbtree *t, node_t *x)
+{ 
+  node_t *w; // sibling
+
+  while(x != t->root && x->color == RBTREE_BLACK)
+  {
+    if(x == x->parent->left)
+    {
+      w = x->parent->right;
+      
+      if(w->color == RBTREE_RED){ // Case 1: Case2 or (Case3 +) Case4 를 위한 준비
+        w->color = RBTREE_BLACK;
+        x->parent->color = RBTREE_RED;
+        left_rotate(t, x->parent);
+        w = x->parent->right;
+      }
+
+      if(w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK){ // Case 2: w이 둘다 blk -> w만 빨강으로 바꿔서 해결 시도
+        w->color = RBTREE_RED;
+        x = x->parent;  // 다음 while에서 검사할 x cursor 이동
+      }
+      else{ // (Case3 +) Case4
+        if(w->right->color == RBTREE_BLACK){ // Case3
+          w->left->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          right_rotate(t, w);
+          w = x->parent->right;
+        }
+        // Case4
+        w->color = x->parent->color;
+        x->parent->color = RBTREE_BLACK;
+        w->right->color = RBTREE_BLACK;
+        left_rotate(t, x->parent);
+        x = t->root;  // 다음 반복문 안돌고 탈출 해버리기 위한 설정
+        }
+    }
+    else // 위의 경우와 좌 <-> 우 만 바꿈
+    {
+      w = x->parent->left;
+      
+      if(w->color == RBTREE_RED){ // Case 1: Case2 or (Case3 +) Case4 를 위한 준비
+        w->color = RBTREE_BLACK;
+        x->parent->color = RBTREE_RED;
+        right_rotate(t, x->parent);
+        w = x->parent->left;
+      }
+
+      if(w->right->color == RBTREE_BLACK && w->left->color == RBTREE_BLACK){ // Case 2: w이 둘다 blk -> w만 빨강으로 바꿔서 해결 시도
+        w->color = RBTREE_RED;
+        x = x->parent;  // 다음 while에서 검사할 x cursor 이동
+      }
+      else{ // (Case3 +) Case4
+        if(w->left->color == RBTREE_BLACK){ // Case3
+          w->right->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          left_rotate(t, w);
+          w = x->parent->left;
+        }
+        // Case4
+        w->color = x->parent->color;
+        x->parent->color = RBTREE_BLACK;
+        w->left->color = RBTREE_BLACK;
+        right_rotate(t, x->parent);
+        x = t->root;  // 다음 반복문 안돌고 탈출 해버리기 위한 설정
+        }
+    }
+  }
+  x->color = RBTREE_BLACK;
+}
+
+int rbtree_erase(rbtree *t, node_t *z) {
   // TODO: implement erase
+  node_t *x, *y = z;
+  color_t y_original_color = y->color;
+  
+  if(z->left == t->nil) // 자식이 없거나 오른쪽에 한명
+  {
+    x = z->right;
+    transplant(t, z, z->right);
+  }
+  else if(z->right == t->nil) // 자식이 왼쪽에 한명
+  {
+    x = z->left;
+    transplant(t, z, z->left);
+  }
+  else  // 자식이 2명
+  {
+    y = rbtree_min(z->right);
+    y_original_color = y->color;
+    x = y->right;
+    if(y->parent == z) x->parent = y; // x가 t.nil일 경우 부모 정보 아무렇게 들어있을 것. 업데이트 필요
+    else{
+      transplant(t, y, y->right);
+      y->right = z->right;
+      y->right->parent = y;
+    }
+
+    transplant(t, z, y);
+    y->left = z->left;
+    y->left->parent = y;
+    y->color = z->color;
+  }
+
+  if(y_original_color == RBTREE_BLACK) erase_fixup(t, x);
+
   return 0;
 }
 
