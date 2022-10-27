@@ -24,7 +24,7 @@ void stk_push(stack *stk, node_t *item)
 {
     elem *tmp = (elem *)malloc(sizeof(elem));   // 동적 elem 생성
     tmp->data = item;
-    tmp->link = stk->top;   // 새로운 elem이 기존의 top elem을 가르키도록 함
+    tmp->link = stk->top;                       // 새로운 elem이 기존의 top elem을 가르키도록 함
     stk->top = tmp;
 }
 
@@ -34,11 +34,11 @@ node_t *stk_pop(stack *stk)
         return NULL;
     }
     else{
-        elem *tmp = stk->top;   // tmp 포인터가 top elem을 가르키도록
+        elem *tmp = stk->top;       // tmp 포인터가 top elem을 가르키도록
         node_t *data = tmp->data;   // 삭제한 값 반환하기 위해 기존의 데이터를 tmp elem에 삽입
         stk->top = stk->top->link;
         free(tmp);
-        return data;    // stk에서 삭제되는 node의 주소값 반환
+        return data;                // stk에서 삭제되는 node의 주소값 반환
     }
 }
 
@@ -159,13 +159,13 @@ node_t *insert(rbtree *t, node_t *z)
   return z;
 }
 
-void delete_node(node_t *node, node_t *nil_node) {
-  if(node != nil_node){                       // nil 은 하나라서 여러 번 지울수도 없고(double free)할 필요도 없음
-    delete_node(node->left, nil_node);    
-    delete_node(node->right, nil_node);    
-    free(node); node = NULL;                  // 새로 추가된 애들이 섞여있기 때문에 노드단위로 해제 해줌
-  }
-}
+// void delete_node(node_t *node, node_t *nil_node) {
+//   if(node != nil_node){                       // nil 은 하나라서 여러 번 지울수도 없고(double free)할 필요도 없음
+//     delete_node(node->left, nil_node);    
+//     delete_node(node->right, nil_node);    
+//     free(node); node = NULL;                  // 새로 추가된 애들이 섞여있기 때문에 노드단위로 해제 해줌
+//   }
+// }
 
 void dfs_delete(node_t *node, node_t *nil_node){
   stack s;
@@ -251,7 +251,7 @@ void erase_fixup(rbtree *t, node_t *x)
     {
       w = x->parent->right;
       
-      if(w->color == RBTREE_RED){ // Case 1: Case2 or (Case3 +) Case4 를 위한 준비
+      if(w->color == RBTREE_RED){                                            // Case 1: Case2 or (Case3 +) Case4 를 위한 준비
         w->color = RBTREE_BLACK;
         x->parent->color = RBTREE_RED;
         left_rotate(t, x->parent);
@@ -260,10 +260,10 @@ void erase_fixup(rbtree *t, node_t *x)
 
       if(w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK){ // Case 2: w이 둘다 blk -> w만 빨강으로 바꿔서 해결 시도
         w->color = RBTREE_RED;
-        x = x->parent;                        // 다음 while에서 검사할 x cursor 이동
+        x = x->parent;                                                       // 다음 while에서 검사할 x cursor 이동
       }
-      else{                                   // (Case3 +) Case4
-        if(w->right->color == RBTREE_BLACK){  // Case3
+      else{                                                                  // (Case3 +) Case4
+        if(w->right->color == RBTREE_BLACK){                                 // Case3
           w->left->color = RBTREE_BLACK;
           w->color = RBTREE_RED;
           right_rotate(t, w);
@@ -274,26 +274,26 @@ void erase_fixup(rbtree *t, node_t *x)
         x->parent->color = RBTREE_BLACK;
         w->right->color = RBTREE_BLACK;
         left_rotate(t, x->parent);
-        x = t->root;  // 다음 반복문 안돌고 탈출 해버리기 위한 설정
+        x = t->root;                                                          // 다음 반복문 안돌고 탈출 해버리기 위한 설정
         }
     }
-    else // 위의 경우와 좌 <-> 우 만 바꿈
+    else                                                                      // 위의 경우와 좌 <-> 우 만 바꿈
     {
       w = x->parent->left;
       
-      if(w->color == RBTREE_RED){ // Case 1: Case2 or (Case3 +) Case4 를 위한 준비
+      if(w->color == RBTREE_RED){                                             // Case 1: Case2 or (Case3 +) Case4 를 위한 준비
         w->color = RBTREE_BLACK;
         x->parent->color = RBTREE_RED;
         right_rotate(t, x->parent);
         w = x->parent->left;
       }
 
-      if(w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK){ // Case 2: w이 둘다 blk -> w만 빨강으로 바꿔서 해결 시도
+      if(w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK){  // Case 2: w이 둘다 blk -> w만 빨강으로 바꿔서 해결 시도
         w->color = RBTREE_RED;
-        x = x->parent;  // 다음 while에서 검사할 x cursor 이동
+        x = x->parent;                                                        // 다음 while에서 검사할 x cursor 이동
       }
-      else{ // (Case3 +) Case4
-        if(w->left->color == RBTREE_BLACK){ // Case3
+      else{                                                                   // (Case3 +) Case4
+        if(w->left->color == RBTREE_BLACK){                                   // Case3
           w->right->color = RBTREE_BLACK;
           w->color = RBTREE_RED;
           left_rotate(t, w);
@@ -304,14 +304,14 @@ void erase_fixup(rbtree *t, node_t *x)
         x->parent->color = RBTREE_BLACK;
         w->left->color = RBTREE_BLACK;
         right_rotate(t, x->parent);
-        x = t->root;  // 다음 반복문 안돌고 탈출 해버리기 위한 설정
+        x = t->root;                                                            // 다음 반복문 안돌고 탈출 해버리기 위한 설정
         }
     }
   }
   x->color = RBTREE_BLACK;
 }
 
-node_t *get_successor(rbtree *t, node_t *z){  // 그냥 z->right 받아서 z->right 반복해도 되지만 ... 그냥 이렇게 해봄
+node_t *get_successor(rbtree *t, node_t *z){  // 그냥 z->right 받아서 z->right 반복해도 되지만 rbtree_min을 재활용 하고싶어서 이렇게 해봄
   node_t *y;
   rbtree *sub = new_rbtree();
                      
@@ -359,27 +359,25 @@ int rbtree_erase(rbtree *t, node_t *z) {
     
   }
 
-  free(z); z = NULL; // 삭제된 node z 는 tree t와 연결이 끊어졌기 때문에 나중에 delete안에서 dfs돌때 방문이 불가능함
+  free(z); z = NULL;                    // 삭제된 node z 는 tree t와 연결이 끊어졌기 때문에 나중에 delete안에서 dfs돌때 방문이 불가능함
 
   if(y_original_color == RBTREE_BLACK) erase_fixup(t, x);
 
   return 0;
 }
 
-void inorder(node_t *z, size_t *idx, key_t *arr, node_t *nil_node){
-  if(z == nil_node) return;
+// void inorder(node_t *z, size_t *idx, key_t *arr, node_t *nil_node){
+//   if(z == nil_node) return;
 
-  inorder(z->left, idx, arr, nil_node);
-  *(arr + (*idx)++) = z->key;
-  inorder(z->right, idx, arr, nil_node);
-}
+//   inorder(z->left, idx, arr, nil_node);
+//   *(arr + (*idx)++) = z->key;
+//   inorder(z->right, idx, arr, nil_node);
+// }
 
 void dfs_stack(node_t *z, size_t *idx, key_t *arr, node_t *nil_node){
   stack s;
   node_t *u = z;
-  // node_t *v;
   stk_init(&s);
-  // stk_push(&s, u);
 
   while(1){
     if(u != nil_node){
