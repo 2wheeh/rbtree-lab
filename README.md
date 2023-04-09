@@ -1,3 +1,85 @@
+**CLRS의 보며 공부한 내용을 바탕으로 작성한 코드들입니다**
+
+**책의 변수명을 그대로 사용한 부분이 많으니 리뷰 시 참고 부탁드립니다**
+
+### test result
+
+- all tests passed
+
+- all allocs got freed
+
+### functions
+
+- dfs 구현에 사용할 stack 관련 함수들
+
+- stack과 반복문을 사용한 dfs 구현을 통해 기존의 함수 재귀호출로 인한 메모리 사용을 줄였음 (delete, to_array) 
+
+```
+void stk_init()
+
+int stk_is_empty()
+
+void stk_push()
+
+node_t *stk_pop()
+```
+
+- rbtree 생성
+```
+rbtree *new_rbtree()
+```
+- rbtree 새 노드 삽입을 위한 함수들
+```
+void left_rotate()
+
+void right_rotate()
+
+void insert_fixup()
+
+node_t *insert()
+```
+- rbtree 메모리 해제를 위한 함수들
+
+- 재귀를 사용한 delete_node() 대신 스택과 반복문을 사용한 dfs_delete()를 구현 
+```
+void delete_node() // 주석처리
+
+void dfs_delete()
+
+void delete_rbtree()
+```
+- rbtree에서 원하는 key의 node를 찾는 함수
+```
+node_t *rbtree_find()
+```
+- rbtree에서 tree의 최소값과 최대값을 찾는 함수
+```
+node_t *rbtreee_min()
+
+node_t *rbtreee_max()
+```
+- rbtree에서 원하는 node를 삭제하는 함수
+```
+void transplant()
+
+void erase_fixup()
+
+node_t *get_successor()
+
+int rbtree_erase()
+```
+- rbtree를 중위순회하여 방문한 노드들을 array로 만들어 주는 함수들
+
+- 재귀를 이용한 inorder() 대신 stack과 반복문을 사용한 dfs_stack()을 사용.
+```
+void inorder() // 주석처리
+
+void dfs_stack()
+
+int rbtree_to_array()
+```
+## 여기까지 과제 제출 당시 메세지이고 밑으로 과제 소개입니다
+
 # Red-Black Tree 구현
 
 Balanced search tree로 많이 쓰이는 Red-black tree (이하 RB tree)를 C 언어로 구현하는 과제입니다.
